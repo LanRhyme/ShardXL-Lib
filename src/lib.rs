@@ -10,6 +10,11 @@
 //! - Game installation and launching
 //! - Event system for progress tracking
 //!
+//! ## Flutter Rust Bridge Support
+//!
+//! This library supports FFI bindings via flutter_rust_bridge.
+//! The simplified FFI API is available in the `frb` module.
+//!
 //! ## Quick Start
 //!
 //! ```no_run
@@ -41,6 +46,9 @@
 //!     Ok(())
 //! }
 //! ```
+
+// Flutter Rust Bridge module
+pub mod frb;
 
 // ============================================================================
 // Authentication Module

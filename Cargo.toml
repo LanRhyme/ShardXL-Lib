@@ -39,6 +39,7 @@ categories = ["command-line-utilities", "development-tools", "games", "api-bindi
 [lib]
 name = "lighty_launcher"
 path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
 
 # ============================================
 # WORKSPACE DEPENDENCIES
@@ -151,6 +152,15 @@ tokio = { workspace = true }
 directories = { workspace = true }
 once_cell = { workspace = true }
 tracing = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true, features = ["blocking"] }
+futures = { workspace = true }
+thiserror = { workspace = true }
+
+# Flutter Rust Bridge FFI
+flutter_rust_bridge = "2.0"
+anyhow = "1.0"
 
 # ============================================
 # DEV DEPENDENCIES - Uniquement pour tests
