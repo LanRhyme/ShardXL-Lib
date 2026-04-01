@@ -92,7 +92,7 @@ pub struct ShardXL_JavaInfo {
 pub extern "C" fn shardxl_free_string(str: *mut c_char) {
     if !str.is_null() {
         unsafe {
-            String::from_raw_parts(str as *mut u8, 0, 0);
+            drop(CString::from_raw(str));
         }
     }
 }
@@ -103,16 +103,16 @@ pub extern "C" fn shardxl_free_user_profile(profile: *mut ShardXL_UserProfile) {
         unsafe {
             let p = &mut *profile;
             if !p.username.is_null() {
-                String::from_raw_parts(p.username as *mut u8, 0, 0);
+                drop(CString::from_raw(p.username));
             }
             if !p.uuid.is_null() {
-                String::from_raw_parts(p.uuid as *mut u8, 0, 0);
+                drop(CString::from_raw(p.uuid));
             }
             if !p.access_token.is_null() {
-                String::from_raw_parts(p.access_token as *mut u8, 0, 0);
+                drop(CString::from_raw(p.access_token));
             }
             if !p.email.is_null() {
-                String::from_raw_parts(p.email as *mut u8, 0, 0);
+                drop(CString::from_raw(p.email));
             }
             ptr::drop_in_place(p);
         }
@@ -125,7 +125,7 @@ pub extern "C" fn shardxl_free_auth_result(result: *mut ShardXL_AuthResult) {
         unsafe {
             let r = &mut *result;
             if !r.error.is_null() {
-                String::from_raw_parts(r.error as *mut u8, 0, 0);
+                drop(CString::from_raw(r.error));
             }
             if !r.profile.is_null() {
                 shardxl_free_user_profile(r.profile);
@@ -141,25 +141,24 @@ pub extern "C" fn shardxl_free_version_list_result(result: *mut ShardXL_VersionL
         unsafe {
             let r = &mut *result;
             if !r.error.is_null() {
-                String::from_raw_parts(r.error as *mut u8, 0, 0);
+                drop(CString::from_raw(r.error));
             }
             if !r.versions.is_null() {
                 for i in 0..r.versions_count {
                     let v = &mut *r.versions.add(i);
                     if !v.id.is_null() {
-                        String::from_raw_parts(v.id as *mut u8, 0, 0);
+                        drop(CString::from_raw(v.id));
                     }
                     if !v.version_type.is_null() {
-                        String::from_raw_parts(v.version_type as *mut u8, 0, 0);
+                        drop(CString::from_raw(v.version_type));
                     }
                     if !v.release_time.is_null() {
-                        String::from_raw_parts(v.release_time as *mut u8, 0, 0);
+                        drop(CString::from_raw(v.release_time));
                     }
                 }
-                std::alloc::dealloc(
-                    r.versions as *mut u8,
-                    std::alloc::Layout::array::<ShardXL_MinecraftVersion>(r.versions_count).unwrap(),
-                );
+                if let Ok(layout) = std::alloc::Layout::array::<ShardXL_MinecraftVersion>(r.versions_count) {
+                    std::alloc::dealloc(r.versions as *mut u8, layout);
+                }
             }
             ptr::drop_in_place(r);
         }
@@ -172,7 +171,7 @@ pub extern "C" fn shardxl_free_launch_result(result: *mut ShardXL_LaunchResult) 
         unsafe {
             let r = &mut *result;
             if !r.error.is_null() {
-                String::from_raw_parts(r.error as *mut u8, 0, 0);
+                drop(CString::from_raw(r.error));
             }
             ptr::drop_in_place(r);
         }
@@ -185,7 +184,7 @@ pub extern "C" fn shardxl_free_install_result(result: *mut ShardXL_InstallResult
         unsafe {
             let r = &mut *result;
             if !r.error.is_null() {
-                String::from_raw_parts(r.error as *mut u8, 0, 0);
+                drop(CString::from_raw(r.error));
             }
             ptr::drop_in_place(r);
         }
@@ -198,10 +197,10 @@ pub extern "C" fn shardxl_free_java_info(info: *mut ShardXL_JavaInfo) {
         unsafe {
             let i = &mut *info;
             if !i.path.is_null() {
-                String::from_raw_parts(i.path as *mut u8, 0, 0);
+                drop(CString::from_raw(i.path));
             }
             if !i.version.is_null() {
-                String::from_raw_parts(i.version as *mut u8, 0, 0);
+                drop(CString::from_raw(i.version));
             }
             ptr::drop_in_place(i);
         }
@@ -215,13 +214,12 @@ pub extern "C" fn shardxl_free_string_array(array: *mut *mut c_char, count: usiz
             for i in 0..count {
                 let s = *array.add(i);
                 if !s.is_null() {
-                    String::from_raw_parts(s as *mut u8, 0, 0);
+                    drop(CString::from_raw(s));
                 }
             }
-            std::alloc::dealloc(
-                array as *mut u8,
-                std::alloc::Layout::array::<*mut c_char>(count).unwrap(),
-            );
+            if let Ok(layout) = std::alloc::Layout::array::<*mut c_char>(count) {
+                std::alloc::dealloc(array as *mut u8, layout);
+            }
         }
     }
 }
