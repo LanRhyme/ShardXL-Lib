@@ -10,7 +10,10 @@ use crate::frb::models::{MinecraftVersion, VersionListResult};
 #[frb]
 pub fn fetch_version_manifest() -> Result<Vec<MinecraftVersion>, String> {
     // Synchronous HTTP request using blocking reqwest
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| e.to_string())?;
     
     let response = client
         .get("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")

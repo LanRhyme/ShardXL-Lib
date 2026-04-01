@@ -44,7 +44,10 @@ pub fn check_java(java_path: Option<String>) -> String {
 /// Download version JSON synchronously
 #[frb]
 pub fn download_version_json(version_id: String, game_directory: String) -> Result<String, String> {
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+        .map_err(|e| e.to_string())?;
     
     // First get manifest
     let manifest_response = client
@@ -89,7 +92,10 @@ pub fn download_version_json(version_id: String, game_directory: String) -> Resu
 /// Download client.jar synchronously
 #[frb]
 pub fn download_client_jar(version_id: String, game_directory: String) -> Result<String, String> {
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(120))
+        .build()
+        .map_err(|e| e.to_string())?;
     
     // Read version JSON
     let json_path = std::path::Path::new(&game_directory)

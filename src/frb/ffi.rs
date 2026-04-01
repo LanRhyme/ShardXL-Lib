@@ -334,7 +334,10 @@ pub extern "C" fn shardxl_is_version_installed(version_id: *const c_char, game_d
 // ============================================================================
 
 fn fetch_version_manifest() -> Result<Vec<MinecraftVersion>, String> {
-    let client = reqwest::blocking::Client::new();
+    let client = reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(10))
+        .build()
+        .map_err(|e| e.to_string())?;
     
     let response = client
         .get("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
@@ -472,7 +475,13 @@ pub extern "C" fn shardxl_download_version_json(version_id: *const c_char, game_
     let version_id = from_c_str(version_id);
     let game_directory = from_c_str(game_directory);
     
-    let client = reqwest::blocking::Client::new();
+    let client = match reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(30))
+        .build()
+    {
+        Ok(c) => c,
+        Err(e) => return to_c_string(&format!("Failed to create HTTP client: {}", e)),
+    };
     
     let manifest_response = match client
         .get("https://piston-meta.mojang.com/mc/game/version_manifest_v2.json")
@@ -528,7 +537,13 @@ pub extern "C" fn shardxl_download_client_jar(version_id: *const c_char, game_di
     let version_id = from_c_str(version_id);
     let game_directory = from_c_str(game_directory);
     
-    let client = reqwest::blocking::Client::new();
+    let client = match reqwest::blocking::Client::builder()
+        .timeout(std::time::Duration::from_secs(60))
+        .build()
+    {
+        Ok(c) => c,
+        Err(e) => return to_c_string(&format!("Failed to create HTTP client: {}", e)),
+    };
     
     let json_path = std::path::Path::new(&game_directory)
         .join("versions")
